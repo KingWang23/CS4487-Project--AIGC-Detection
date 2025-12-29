@@ -1,0 +1,233 @@
+# 1. ConvNeXtV2-Large-384
+python train_aigc_detector.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model convnextv2_large.fcmae_ft_in22k_in1k_384 --batch_size 40 --tb_logdir runs/convnext_large_20251126
+
+# 2. EfficientNet-B7-384
+python train_aigc_detector.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model tf_efficientnet_b7.ns_jft_in1k --batch_size 48
+
+# 3. EfficientNet-B5-512
+python train_aigc_detector.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model tf_efficientnet_b5.ns_jft_in1k  --batch_size 24
+
+# 4. DeiT3-Large-384
+python train_aigc_detector.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model deit3_large_patch16_384.fb_in22k_ft_in1k --batch_size 32
+
+# 5. DeiT3-Large-384
+
+python train_aigc_detector_without\ EMA.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model eva02_large_patch14_448.mim_m38m_ft_in22k_in1k --batch_size 32
+
+# 6 regnety_320
+python train_aigc_detector_without\ EMA.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model regnety_320 --batch_size 32
+
+python train_aigc_detector_without\ EMA.py --train_csv dataset_csv/train.csv --val_csv dataset_csv/val.csv --model swin_large_patch4_window12_384 --batch_size 32
+
+
+python train.py \
+    --train_csv dataset_csv/train.csv \
+    --val_csv dataset_csv/val.csv \
+    --model deit3_large_patch16_384.fb_in22k_ft_in1k \
+    --batch_size 16 \
+    --epochs 30 \
+    --output checkpoints \
+    --tb_logdir runs/deit3_large_patch16_384
+
+python train.py \
+    --train_csv dataset_csv/train.csv \
+    --val_csv dataset_csv/val.csv \
+    --model tf_efficientnet_b7.ns_jft_in1k \
+    --batch_size 8 \
+    --epochs 30 \
+    --output checkpoints \
+    --tb_logdir runs/tf_efficientnet_b7
+
+python infer_ensemble.py \
+    --img_folder /AIGC-Detection-Test-1 \
+    --single_ckpt /regnety_320_best.pth\
+    --single_model regnety_320 \
+    --single_size 384 \
+    --output_csv regnety_320.csv
+
+python infer_clean.py \
+    --img_folder /AIGC-Detection-Test-1 \
+    --ckpt /tf_efficientnet_b5_best.pth\
+    --model tf_efficientnet_b5.ns_jft_in1k \
+    --size 512 \
+    --output_csv tf_efficientnet_b5.csv
+
+
+
+python infer_csv.py \
+    --csv dataset_csv/val.csv \
+    --single_ckpt checkpoints/Orginal/tf_efficientnet_b5_best_99.88.pth \
+    --single_model tf_efficientnet_b5.ns_jft_in1k \
+    --single_size 384 \
+    --tta 8 \
+    --threshold None
+
+python infer_ensemble_dataloader.py \
+    --img_folder /AIGC-Detection-Test-1 \
+    --ensemble \
+        checkpoints/convnextv2_large.fcmae_ft_in22k_in1k_384_best_acc.pth:convnextv2_large.fcmae_ft_in22k_in1k_384:384:1.0 \
+        checkpoints/tf_efficientnet_b7.ns_jft_in1k_best_acc.pth:tf_efficientnet_b7.ns_jft_in1k:384:1.0 \
+        checkpoints/tf_efficientnet_b5.ns_jft_in1k_best_acc.pth:tf_efficientnet_b5.ns_jft_in1k:512:1.0 \
+        checkpoints/deit3_large_patch16_384.fb_in22k_ft_in1k_best_acc.pth:deit3_large_patch16_384.fb_in22k_ft_in1k:384:1.0 \
+        checkpoints_orginal/regnety_320_best.pth:regnety_320_:320:1.0 \
+        checkpoints_orginal/swin_large_patch4_window12_384_best.pth:swin_large_patch4_window12_384:384:1.0 \
+    --tta 1 \
+    --threshold 0.51 \
+    --output_csv six_retrain.csv
+
+
+
+
+
+python infer_new.py \
+    --img_folder /AIGC-Detection-Test-1 \
+    --ensemble \
+        checkpoints/convnextv2_large.fcmae_ft_in22k_in1k_384_best_acc.pth:convnextv2_large.fcmae_ft_in22k_in1k_384:384:1.0 \
+        checkpoints/tf_efficientnet_b7.ns_jft_in1k_best_acc.pth:tf_efficientnet_b7.ns_jft_in1k:384:1.0 \
+        checkpoints/tf_efficientnet_b5.ns_jft_in1k_best_acc.pth:tf_efficientnet_b5.ns_jft_in1k:512:1.0 \
+        checkpoints/deit3_large_patch16_384.fb_in22k_ft_in1k_best_acc.pth:deit3_large_patch16_384.fb_in22k_ft_in1k:384:1.0 \
+        checkpoints_orginal/regnety_320_best.pth:regnety_320:320:1.0 \
+        checkpoints_orginal/swin_large_patch4_window12_384_best.pth:swin_large_patch4_window12_384:384:1.0 \
+    --tta 1 \
+    --threshold 0.51 \
+    --output_csv six_retrain.csv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fake:
+概率分布统计：
+count    25000.000000
+mean         0.173200
+std          0.054321
+min          0.000010
+25%          0.134638
+50%          0.166907
+75%          0.204980
+max          0.436112
+Name: prob, dtype: float64
+
+============================================================
+               AIGC检测 终极评估报告
+============================================================
+数据集数量       : 10000
+真实AI生成图     : 5000 (label=1)
+真实真实图       : 5000 (label=0)
+模型输出概率范围 : [0.000244, 0.939852]
+概率均值         : 0.101736
+------------------------------------------------------------
+【最优阈值】      : 0.098000
+【当前使用阈值】  : 0.098000
+【Youden J 阈值】  : 0.112348
+------------------------------------------------------------
+Accuracy         : 51.230000%
+Precision        : 51.8009%
+Recall           : 35.3800%
+F1 Score         : 42.043969%
+AUC              : 51.585648%
+============================================================
+提交时请使用阈值: 0.09800000000000005
+============================================================
+
+
+Without TTA EfficientNetb5->99.88, EfficientNetb7->99.72, ConvNeXtV2->98.80
+With TTA EfficientNetb5->99.80, DeiT3-Large-384->0.9916
+
+
+
+Epoch 12/12 Train: 100%|██████████████████████████████████████████████████████████████████████| 5000/5000 [28:16<00:00,  2.95it/s, loss=0.0085, acc=0.99843]
+Val Loss: 0.0048 | Acc: 0.999400 | AUC: 0.999994 | Best Threshold: 0.0500                                                                                   
+Epoch 12 | Train Loss: 0.0085 | Train Acc: 0.9984 | Val Loss: 0.0048 | Val Acc: 0.999400 | Val AUC: 0.999994 | Best Threshold: 0.0500
+  → New best! Acc: 0.999400 | Use threshold: 0.0500
+
+Training finished! Best val acc: 0.99940
+Best model saved at: checkpoints/convnextv2_large.fcmae_ft_in22k_in1k_384_best.pth
+
+
+
+Epoch 09 | Train Loss: 0.0356 | Train Acc: 0.9914 | Val Loss: 0.0031 | Val Acc: 0.999400 | Val AUC: 0.999991 | Best Threshold: 0.0800
+  → New best! Acc: 0.999400 | Use threshold: 0.0800
+Training finished! Best val acc: 0.99940
+Best model saved at: checkpoints/tf_efficientnet_b7_best.pth
+
+
+Epoch 11/12 Train: 100%|██████████████████████████████████████████████████████████████████████| 5000/5000 [10:36<00:00,  7.86it/s, loss=0.0061, acc=0.99857]
+Val Loss: 0.0010 | Acc: 1.000000 | AUC: 1.000000 | Best Threshold: 0.0500                                                                                   
+Epoch 11 | Train Loss: 0.0061 | Train Acc: 0.9986 | Val Loss: 0.0010 | Val Acc: 1.000000 | Val AUC: 1.000000 | Best Threshold: 0.0500
+  → New best! Acc: 1.000000 | Use threshold: 0.0500
+Training finished! Best val acc: 1.00000
+Best model saved at: checkpoints/tf_efficientnet_b5_best.pth
+
+
+
+Epoch 36 | Train Loss: 0.0050 | Train Acc: 0.9986 | Val Loss: 0.0553 | Val Acc: 0.990200 | Val AUC: 0.999554 | Best Threshold: 0.0600
+  → New best! Acc: 0.990200 | Use threshold: 0.0600
+Epoch 37/40 Train: 100%|██████████████████████████████████████████████████████████████████████████████████| 400/400 [04:01<00:00,  1.66it/s, loss=0.0041, acc=0.99860]
+Val Loss: 0.0529 | Acc: 0.990800 | AUC: 0.999576 | Best Threshold: 0.0790                                                                                             
+Epoch 37 | Train Loss: 0.0041 | Train Acc: 0.9986 | Val Loss: 0.0529 | Val Acc: 0.990800 | Val AUC: 0.999576 | Best Threshold: 0.0790
+  → New best! Acc: 0.990800 | Use threshold: 0.0790
+Epoch 38/40 Train: 100%|██████████████████████████████████████████████████████████████████████████████████| 400/400 [04:01<00:00,  1.66it/s, loss=0.0043, acc=0.99877]
+Val Loss: 0.0572 | Acc: 0.990600 | AUC: 0.999582 | Best Threshold: 0.0500                                                                                             
+Epoch 38 | Train Loss: 0.0043 | Train Acc: 0.9988 | Val Loss: 0.0572 | Val Acc: 0.990600 | Val AUC: 0.999582 | Best Threshold: 0.0500
+Epoch 39/40 Train: 100%|██████████████████████████████████████████████████████████████████████████████████| 400/400 [04:01<00:00,  1.66it/s, loss=0.0034, acc=0.99903]
+Val Loss: 0.0532 | Acc: 0.990700 | AUC: 0.999587 | Best Threshold: 0.2100                                                                                             
+Epoch 39 | Train Loss: 0.0034 | Train Acc: 0.9990 | Val Loss: 0.0532 | Val Acc: 0.990700 | Val AUC: 0.999587 | Best Threshold: 0.2100
+Epoch 40/40 Train: 100%|██████████████████████████████████████████████████████████████████████████████████| 400/400 [04:01<00:00,  1.66it/s, loss=0.0037, acc=0.99887]
+Val Loss: 0.0586 | Acc: 0.990800 | AUC: 0.999586 | Best Threshold: 0.0540                                                                                             
+Epoch 40 | Train Loss: 0.0037 | Train Acc: 0.9989 | Val Loss: 0.0586 | Val Acc: 0.990800 | Val AUC: 0.999586 | Best Threshold: 0.0540
+
+Training finished! Best val acc: 0.99080
+Best model saved at: checkpoints/eva02_base_patch14_224.mim_in22k_best.pth
+Best threshold: 0.0790
+
+
+Val Loss: 0.0006 | Acc: 0.999900 | AUC: 1.000000 | Best Threshold: 0.7360                                                                    
+Epoch 15 | Train Loss: 0.0180 | Train Acc: 0.9953 | Val Loss: 0.0006 | Val Acc: 0.999900 | Val AUC: 1.000000 | Best Threshold: 0.7360
+  → New best! Acc: 0.999900 | Use threshold: 0.7360
+
+
+
+
+Epoch 35 | Train Loss: 0.0029 | Train Acc: 0.9992 | Val Loss: 0.0134 | Val Acc: 0.998100 | Val AUC: 0.999984 | Best Threshold: 0.0500
+  → New best! Acc: 0.998100 | Use threshold: 0.0500
+Epoch 36/40 Train: 100%|███████████████████████████████████████████████████████| 2500/2500 [25:13<00:00,  1.65it/s, loss=0.0010, acc=0.99975]
+Val Loss: 0.0122 | Acc: 0.998400 | AUC: 0.999986 | Best Threshold: 0.0590                                                                    
+Epoch 36 | Train Loss: 0.0010 | Train Acc: 0.9998 | Val Loss: 0.0122 | Val Acc: 0.998400 | Val AUC: 0.999986 | Best Threshold: 0.0590
+  → New best! Acc: 0.998400 | Use threshold: 0.0590
+
+
+
+
+
+
+
+
+
+
+
+
+ensemble: 全是1 0.9992,   , 1,1,1.2,0.8->0.9996  0.8,1.2,1.2,0.8 ->0.9988, 0.8 0.8 1.6,0.8->0.9992
+
+
+1877, 1149
+
+
+00091, 0002258, 0000338->1 402->0 2057->0 1877->0
+
+
+======================================================================
+Training finished!
+Best Val Acc@0.5 : 0.999500 (at epoch 38)
+Corresponding F1 : 0.999500
+Best model saved: checkpoints/convnextv2_large.fcmae_ft_in22k_in1k_384_best_acc.pth
